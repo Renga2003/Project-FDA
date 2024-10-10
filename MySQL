@@ -1,0 +1,128 @@
+create database FDA;
+show databases;
+drop database FDA;
+use FDA;
+
+-- USER TABLE
+CREATE TABLE User (
+    user_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_name VARCHAR(100) NOT NULL,
+    user_contact_details VARCHAR(255),
+    user_address VARCHAR(255),
+    user_role VARCHAR(50)
+);
+insert into User(user_id,user_name,user_contact_details,user_address,user_role)
+values(21,'renganayagi','8790654321','trichy','customer'),(25,'varsha','9123456708','chennai','delivery person'),
+(22,'moni','8790654321','erode','admin');
+select * from User;
+drop table User;
+
+-- RESTAURANT TABLE 
+CREATE TABLE restaurant (
+    user_id INT,
+    foreign key(user_id) references User(user_id),
+    restaurant_id INT PRIMARY KEY,
+    restaurant_name VARCHAR(100),
+    restaurant_location VARCHAR(255),
+    restaurant_category VARCHAR(50),
+    restaurant_available_time TIME
+);
+
+insert into restaurant(user_id,restaurant_id,restaurant_name,restaurant_location,restaurant_category,restaurant_available_time)
+values(22,15,'karaikudi mess','ramapuram, chennai','south indian restaurant','08:00:00');
+
+select * from restaurant;
+drop table restaurant;
+
+-- MENUITEM TABLE
+CREATE TABLE menuItem (
+    menuItem_id INT NOT NULL,
+    menuItem_name VARCHAR(100) NOT NULL,
+    menuItem_description TEXT,
+    menuItem_price DECIMAL(10, 2) NOT NULL,
+    menuItem_category VARCHAR(50),
+     restaurant_id INT,
+    foreign key (restaurant_id) references restaurant(restaurant_id)
+);
+insert into menuItem (menuItem_id, menuItem_name, menuItem_description, menuItem_price, menuItem_category, restaurant_id) values
+(1, 'Margherita Pizza', 'Classic pizza with fresh tomatoes, mozzarella cheese, and basil', 8.99, 'Pizza', 15),
+(2, 'Caesar Salad', 'Crisp romaine lettuce with Caesar dressing, croutons, and Parmesan cheese', 6.50, 'Salad', 15),
+(3, 'Spaghetti Carbonara', 'Spaghetti with creamy sauce, pancetta, and Parmesan cheese', 12.00, 'Pasta', 15);
+drop table menuItem;
+select * from menuItem;
+
+-- ORDERS TABLE 
+ALTER TABLE menuItem ADD INDEX (menuItem_id);
+CREATE TABLE orders (
+    orders_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    menuItem_id INT NOT NULL,
+    orders_date date NOT NULL,
+    orders_total_amount DECIMAL(10, 2) NOT NULL,
+    orders_delivery_address VARCHAR(255) NOT NULL,
+	foreign key(menuItem_id) references menuItem(menuItem_id),
+    foreign key(user_id) references User(user_id)
+    );
+
+insert into orders (orders_id,user_id,menuItem_id, orders_date, orders_total_amount, orders_delivery_address) values
+(31,21,1, '2024-09-01', 25.50, '123 Main St, Chennai, TN');
+drop table orders;
+select * from orders;
+
+-- OFFER TABLE 
+CREATE TABLE offer (
+    offer_id INT PRIMARY KEY AUTO_INCREMENT,
+    restaurant_id INT NOT NULL,
+    offer_description VARCHAR(255),
+    offer_discount DECIMAL(5,2),
+    offer_validity DATE,
+    offer_applicable_item VARCHAR(255),
+    offer_terms_conditions VARCHAR(255),
+	FOREIGN KEY (restaurant_id) REFERENCES restaurant(restaurant_id)
+);
+insert into offer (restaurant_id, offer_description, offer_discount, offer_validity, offer_applicable_item, offer_terms_conditions) values
+(15, '20% off on all pizzas', 20.00, '2024-12-31', 'All Pizzas', 'Valid for dine-in only'),
+(15, 'Buy one get one free on salads', 50.00, '2024-11-30', 'All Salads', 'Valid on weekdays only'),
+(15, '15% off on all main courses', 15.00, '2024-10-31', 'All Main Courses', 'Not valid with other offers');
+select * from offer;
+
+-- PAYMENT TABLE
+CREATE TABLE payment (
+    payment_id INT PRIMARY KEY,
+    orders_id INT,
+    FOREIGN KEY (orders_id) REFERENCES orders(orders_id),
+    offer_id INT,
+    FOREIGN KEY (offer_id) REFERENCES offer(offer_id),
+    payment_method VARCHAR(10) CHECK (payment_method IN ('UPI', 'Cash'))
+);
+
+insert into payment (payment_id,payment_method) values
+(11, 'UPI'),
+(20,'Cash'),
+(35, 'UPI');
+select * from payment;
+
+-- ORDERSTATUS TABLE
+CREATE TABLE orderStatus (
+    orderStatus_id INT PRIMARY KEY,
+    orders_id INT NOT NULL,
+    FOREIGN KEY (orders_id) REFERENCES orders(orders_id),
+    orderStatus_statusTracker VARCHAR(255) NOT NULL,
+    Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+insert into orderStatus (orderStatus_id,orders_id,orderStatus_statusTracker) values
+(21,31,'Order Placed');
+
+select * from orderStatus;
+
+-- RATING TABLE
+CREATE TABLE rating (
+    user_id INT NOT NULL,
+	rating_score INT NOT NULL,
+    rating_review_text TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, timestamp)
+);
+insert into rating (user_id, rating_score, rating_review_text) values
+(21, 5, 'Excellent service and delicious food!'),
+(25, 4, 'Great ambiance, but the food was a bit salty.');
